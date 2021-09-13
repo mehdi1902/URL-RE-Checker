@@ -75,7 +75,11 @@ def load_input_file(input_file):
         input file (str): address of the file
     """
     if '.json' in input_file:
-        all_samples = json.load(open(input_file, 'r'))
+        try:
+            all_samples = json.load(open(input_file, 'r'))
+        except:
+            print("Error in reading the json file")
+            sys.exit(2)
     else:
         with open(input_file, 'r') as f:
             lines = f.read().split('\n')
