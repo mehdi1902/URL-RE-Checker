@@ -75,11 +75,7 @@ def load_input_file(input_file):
         input file (str): address of the file
     """
     if '.json' in input_file:
-        try:
-            all_samples = json.load(open(input_file, 'r'))
-        except:
-            print("Error in reading the json file")
-            sys.exit(2)
+        all_samples = json.load(open(input_file, 'r'))
     else:
         with open(input_file, 'r') as f:
             lines = f.read().split('\n')
@@ -98,8 +94,8 @@ def load_input_file(input_file):
                     url_dict[key].append(line)
             all_samples.append(url_dict)
     return all_samples
-
-
+                    
+  
 def read_regex_templates():
     """
     Load the regex_templates file contains some predefined regex patters
@@ -156,7 +152,11 @@ def download_all(input_file, output_file, unique=False):
     pool = urllib3.PoolManager()
     all_matched = []
     patterns = read_regex_templates()
-    for s_id, sample in enumerate(load_input_file(input_file)):
+    samples = load_input_file(input_file)
+    N = len(samples)
+    for s_id, sample in enumerate(samples):
+        if s_id % 10 == 0:
+            print('Checking url %i / %i' % (s_id+1, N))
         url, regex_list = list(sample.items())[0]
         regex_list = convert_regex(regex_list, patterns)
         matched, info = match_site(url, regex_list, pool=pool, unique=unique)
@@ -166,19 +166,34 @@ def download_all(input_file, output_file, unique=False):
         all_matched.append(matched)
 
     json.dump(all_matched, open(output_file, 'w+'), indent=2)
+    print('Done! Results are in %s' % output_file)
+
+
+def create_test_json(test_file, n_samples=1):
+    """
+    Creating a sample json file for testing
+    args:
+        test_file (str): name of 
+    """
+    data = [{'https://webscraper.io/test-sites/tables': ['\\d{4,}', '@\\w+']}] * int(n_samples)
+    json.dump(data, open(test_file, 'w+'), indent=2)
 
 
 def main(argv):
     input_file = ''
     output_file = ''
     try:
-        opts, args = getopt.getopt(argv,"hi:o:",["ifile=","ofile="])
+        opts, args = getopt.getopt(argv, "hi:o:t:", ["ifile=","ofile="])
     except getopt.GetoptError:
         print('$ python3 find.py -i <inputfile> -o <outputfile>')
         sys.exit(2)
     for opt, arg in opts:
         if opt == '-h':
             print('$ python3 find.py -i <inputfile> -o <outputfile>')
+            sys.exit()
+        elif opt == '-t':
+            N = arg
+            create_test_json('test.json', N)
             sys.exit()
         elif opt in ("-i", "--ifile"):
             input_file = arg
