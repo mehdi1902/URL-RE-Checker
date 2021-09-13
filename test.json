@@ -1,0 +1,14 @@
+[
+  {
+    "https://webscraper.io/test-sites/tables": [
+      "\\d{4,}",
+      "@\\w+"
+    ]
+  },
+  {
+    "https://webscraperssss.io/test-sites/tables": [
+      "\\d{4,}",
+      "@\\w+"
+    ]
+  }
+]
