@@ -5,7 +5,6 @@ import sys
 from time import time
 import signal
 import getopt
-from concurrent.futures import ThreadPoolExecutor
 
 
 def download_site(url, pool=None, decode=True):
