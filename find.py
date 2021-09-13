@@ -95,7 +95,7 @@ def load_input_file(input_file):
                     url_dict[key].append(line)
             all_samples.append(url_dict)
     return all_samples
-    
+
 
 def download_all(input_file, output_file, unique=False):
     """
@@ -105,22 +105,21 @@ def download_all(input_file, output_file, unique=False):
         output_file (str): address for the output json file
     """
     
-    def signal_handler(sig, frame):
-        print('Intrupt by user! Results are saved in %s' % (output_file))
+    def signal_handler(sig, frame): # Handling an intrupt and writing the results so far
+        print('Interrupted by user! Results are saved in %s' % (output_file))
         json.dump(all_matched, open(output_file, 'w+'), indent=2)
         sys.exit(2)
     signal.signal(signal.SIGINT, signal_handler)
 
     pool = urllib3.PoolManager()
     all_matched = []
-    for s_id, sample in enumerate(json.load(open(input_file, 'r'))):
+    for s_id, sample in enumerate(load_input_file(input_file)):
         url, regex_list = list(sample.items())[0]
         matched, info = match_site(url, regex_list, pool=pool, unique=unique)
         matched = {url: matched}
         for key in info:
             matched[url][key] = info[key]
         all_matched.append(matched)
-
     json.dump(all_matched, open(output_file, 'w+'), indent=2)
 
 
@@ -130,11 +129,11 @@ def main(argv):
     try:
         opts, args = getopt.getopt(argv,"hi:o:",["ifile=","ofile="])
     except getopt.GetoptError:
-        print('find.py -i <inputfile> -o <outputfile>')
+        print('$ python3 find.py -i <inputfile> -o <outputfile>')
         sys.exit(2)
     for opt, arg in opts:
         if opt == '-h':
-            print('find.py -i <inputfile> -o <outputfile>')
+            print('$ python3 find.py -i <inputfile> -o <outputfile>')
             sys.exit()
         elif opt in ("-i", "--ifile"):
             input_file = arg
