@@ -100,6 +100,45 @@ def load_input_file(input_file):
     return all_samples
 
 
+def read_regex_templates():
+    """
+    Load the regex_templates file contains some predefined regex patters
+    Format of the template file is:
+    #label1
+    regex1
+    #label2
+    regex2
+    
+    return:
+        a dict of mappings #NAME: regex
+    """
+    with open('regex_templates', 'r') as f:
+        lines = f.read().split('\n')
+        patterns = {}
+        keys = lines[::2]
+        values = lines[1::2]
+        for k, v in zip(keys, values):
+            patterns[k] = v
+    return patterns
+
+def convert_regex(regex, patterns):
+    """
+    Convert a regex template to an actual regex
+    args:
+        regex (list): Each element can be #name which is a template or an actual regex string
+        patterns (dict): mapping for #name: regex string
+    """
+    new_regex = []
+    for r in regex:
+        if '#' in r:
+            if r in patterns:
+                new_regex.append(patterns[r])
+            else:
+                print('Using %s which is not in the templates' % r)
+        else:
+            new_regex.append(r)
+    return new_regex
+    
 def download_all(input_file, output_file, unique=False):
     """
     Find all the patterns for each website from input_file and write the log in output_file
@@ -108,7 +147,7 @@ def download_all(input_file, output_file, unique=False):
         output_file (str): address for the output json file
     """
     
-    def signal_handler(sig, frame): # Handling an intrupt and writing the results so far
+    def signal_handler(sig, frame):
         print('Interrupted by user! Results are saved in %s' % (output_file))
         json.dump(all_matched, open(output_file, 'w+'), indent=2)
         sys.exit(2)
@@ -116,13 +155,16 @@ def download_all(input_file, output_file, unique=False):
 
     pool = urllib3.PoolManager()
     all_matched = []
+    patterns = read_regex_templates()
     for s_id, sample in enumerate(load_input_file(input_file)):
         url, regex_list = list(sample.items())[0]
+        regex_list = convert_regex(regex_list, patterns)
         matched, info = match_site(url, regex_list, pool=pool, unique=unique)
         matched = {url: matched}
         for key in info:
             matched[url][key] = info[key]
         all_matched.append(matched)
+
     json.dump(all_matched, open(output_file, 'w+'), indent=2)
 
 

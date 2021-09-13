@@ -2,13 +2,15 @@
   {
     "https://webscraper.io/test-sites/tables": [
       "\\d{4,}",
-      "@\\w+"
+      "@\\w+",
+      "#EMAIL"
     ]
   },
   {
     "https://webscraperssss.io/test-sites/tables": [
       "\\d{4,}",
-      "@\\w+"
+      "@\\w+",
+      "#EMAIL"
     ]
   }
 ]
