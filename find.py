@@ -25,15 +25,18 @@ def download_site(url, pool=None, decode=True):
     t1 = time()
     try:
         site = pool.request('GET', url)
-        
         if decode:
             site = site.data.decode("utf-8")
-    except:
+        error = 'No error'
+    except Exception as e:
+        error = str(e)
         print('Problem with requesting %s' % (url))
-        site = urllib3.response.HTTPResponse('')
+        site = urllib3.response.HTTPResponse('<!DOCTYPE html><html><body><h1>INVALID</h1></body></html>')
         site.status = 404
+        if decode:
+            site = 'INVALID URL!'
     elapsed_time = time() - t1
-    return site, {'fetching time (s)': elapsed_time}
+    return site, {'fetching time (s)': elapsed_time, 'error':error}
 
 
 def match_site(url, regex_list, pool=None, unique=False):
@@ -59,6 +62,40 @@ def match_site(url, regex_list, pool=None, unique=False):
     info['processing time (s)'] = processing_time
     return matched, info
 
+
+def load_input_file(input_file):
+    """
+    Read the samples from a normal file with the following format or a json:
+        > url1
+        regex1
+        regex2
+        > url2
+        regex3
+        regex4  
+    args:
+        input file (str): address of the file
+    """
+    if '.json' in input_file:
+        all_samples = json.load(open(input_file, 'r'))
+    else:
+        with open(input_file, 'r') as f:
+            lines = f.read().split('\n')
+            url_dict = {}
+            all_samples = []
+            key = ''
+            for line in lines:
+                if '>' in line:
+                    line = line.replace(' ', '') # To handle a user mistake for not entering space
+                    if url_dict != {}:
+                        all_samples.append(url_dict)
+                    url_dict = {}
+                    key = line[1:]
+                    url_dict[key] = []
+                elif line:
+                    url_dict[key].append(line)
+            all_samples.append(url_dict)
+    return all_samples
+    
 
 def download_all(input_file, output_file, unique=False):
     """
