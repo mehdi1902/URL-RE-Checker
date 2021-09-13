@@ -4,6 +4,10 @@ Checking some regex for each URL from a list
 # Usage
 ```$ python3 find.py -i input.json -o output.json```
 
+One can create a `test.json` file with `N` samples using:
+```$ python3 find.py -t N```
+in which `N` is an int.
+
 ## input_file
 It supports both `.json` and normal files as input. Format of the normal file would be:
 ```
