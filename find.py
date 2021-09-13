@@ -23,10 +23,16 @@ def download_site(url, pool=None, decode=True):
     if pool is None:
         pool = urllib3.PoolManager()
     t1 = time()
-    site = pool.request('GET', url)
+    try:
+        site = pool.request('GET', url)
+        
+        if decode:
+            site = site.data.decode("utf-8")
+    except:
+        print('Problem with requesting %s' % (url))
+        site = urllib3.response.HTTPResponse('')
+        site.status = 404
     elapsed_time = time() - t1
-    if decode:
-        site = site.data.decode("utf-8")
     return site, {'fetching time (s)': elapsed_time}
 
 
@@ -61,13 +67,15 @@ def download_all(input_file, output_file, unique=False):
         input_file (str): address for the input json file
         output_file (str): address for the output json file
     """
-    all_matched = []
+    
     def signal_handler(sig, frame):
         print('Intrupt by user! Results are saved in %s' % (output_file))
         json.dump(all_matched, open(output_file, 'w+'), indent=2)
         sys.exit(2)
     signal.signal(signal.SIGINT, signal_handler)
+
     pool = urllib3.PoolManager()
+    all_matched = []
     for s_id, sample in enumerate(json.load(open(input_file, 'r'))):
         url, regex_list = list(sample.items())[0]
         matched, info = match_site(url, regex_list, pool=pool, unique=unique)
